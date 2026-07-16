@@ -22,7 +22,7 @@ Get-Content -LiteralPath $envFile | ForEach-Object {
 
 $values['NODE_ENV'] = 'production'
 $values['AUTO_INIT_DB'] = 'false'
-$values['ALLOWED_ORIGINS'] = 'https://cleans-six.vercel.app'
+$values['ALLOWED_ORIGINS'] = 'https://cleans-six-mu.vercel.app'
 
 $required = @(
     'DATABASE_URL',

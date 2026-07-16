@@ -15,17 +15,17 @@
 - `ADMIN_TOKEN_SECRET`
 - `NODE_ENV` وقيمته `production`
 - `AUTO_INIT_DB` وقيمته `false`
-- `ALLOWED_ORIGINS` وقيمته `https://cleans-six.vercel.app`
+- `ALLOWED_ORIGINS` وقيمته `https://cleans-six-mu.vercel.app`
 
 فعّل المتغيرات لبيئة `Production`. بعد ذلك ارفع محتويات الحزمة إلى مستودع المشروع أو انشر المجلد باستخدام Vercel CLI، ثم نفّذ إعادة نشر للإنتاج.
 
 ## التحقق بعد النشر
 
-- الصفحة الرئيسية: `https://cleans-six.vercel.app/`
-- صحة الخادم: `https://cleans-six.vercel.app/api/v1/health`
-- الخدمات: `https://cleans-six.vercel.app/api/v1/public/services`
-- الحجز: `https://cleans-six.vercel.app/booking.html`
-- لوحة الإدارة: `https://cleans-six.vercel.app/admin_dashboard.html`
+- الصفحة الرئيسية: `https://cleans-six-mu.vercel.app/`
+- صحة الخادم: `https://cleans-six-mu.vercel.app/api/v1/health`
+- الخدمات: `https://cleans-six-mu.vercel.app/api/v1/public/services`
+- الحجز: `https://cleans-six-mu.vercel.app/booking.html`
+- لوحة الإدارة: `https://cleans-six-mu.vercel.app/admin_dashboard.html`
 
 يجب أن تعرض نقطة فحص الخادم:
 
