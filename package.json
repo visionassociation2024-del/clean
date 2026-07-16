@@ -1,0 +1,23 @@
+{
+  "name": "cleans",
+  "version": "1.0.0",
+  "description": "EliteClean bilingual field-services booking platform",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js",
+    "check": "node --check backend/server.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "pg": "^8.22.0"
+  }
+}

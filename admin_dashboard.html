@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم والإدارة المركزية | إليت كلين EliteClean Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - IBM Plex Sans Arabic & Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Arabic', 'Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#1e40af',
+                            600: '#1e3a8a',
+                            700: '#1d3471',
+                            900: '#172554',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'IBM Plex Sans Arabic', 'Cairo', sans-serif; background-color: #f8fafc; }
+        .sidebar-item.active { background-color: #1e40af; color: #ffffff; font-weight: 700; }
+        @media (max-width: 767px) {
+            body { display: block !important; }
+            body > aside { width: 100%; min-height: auto; position: sticky; top: 0; z-index: 40; }
+            body > aside > div:first-child { display: none; }
+            body > aside nav { display: flex; overflow-x: auto; padding: .65rem; gap: .35rem; }
+            body > aside nav button { width: auto; flex: 0 0 auto; padding: .65rem .8rem; }
+            body > aside > div:last-child { display: none; }
+            main > header { padding: 1rem; }
+            main > div { padding: 1rem !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex bg-slate-100 antialiased text-slate-800 relative">
+
+    <!-- Auth Login Overlay Modal -->
+    <div id="login-overlay" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 sm:p-10 max-w-md w-full shadow-2xl border border-slate-200 space-y-6 text-slate-900">
+            <div class="text-center space-y-3">
+                <img src="logo_emblem.png" alt="Logo" class="h-16 w-auto mx-auto object-contain">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-slate-900">تسجيل الدخول لوحة التحكم</h2>
+                    <p class="text-xs text-slate-500 font-bold mt-1">أدخل البريد الإلكتروني وكلمة المرور للمتابعة</p>
+                </div>
+            </div>
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700 block">البريد الإلكتروني / اسم المستخدم</label>
+                    <input type="text" id="admin-email" value="admin@eliteclean.sa" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm font-bold font-en outline-none focus:border-primary-500" placeholder="admin@eliteclean.sa" required>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700 block">كلمة المرور</label>
+                    <input type="password" id="admin-password" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm font-bold font-en outline-none focus:border-primary-500" placeholder="••••••••" autocomplete="current-password" required>
+                </div>
+                <div id="login-error" class="hidden text-xs font-bold text-red-500 bg-red-50 p-3 rounded-xl border border-red-200 text-center"></div>
+                <button type="submit" class="w-full py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-extrabold text-sm rounded-xl shadow-lg transition-all active:scale-95">تسجيل الدخول للنظام</button>
+            </form>
+            <div class="text-center text-[11px] text-slate-400 font-medium pt-2 border-t border-slate-100">
+                استخدم بيانات الإدارة المحددة في متغيرات البيئة على الخادم.
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-slate-950 text-white flex flex-col flex-shrink-0 border-l border-slate-800">
+        <!-- Brand Header -->
+        <div class="p-6 border-b border-slate-800 flex items-center gap-3">
+            <img src="logo_emblem.png" alt="Emblem" class="h-10 w-auto object-contain" onerror="this.outerHTML='<div class=\'w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center font-bold text-white\'>EC</div>'">
+            <div>
+                <h1 class="font-extrabold text-base text-white">إليت كلين</h1>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">لوحة الإدارة المركزية</p>
+            </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="p-4 space-y-1.5 flex-1 text-sm font-semibold">
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span>الملخص والتقارير</span>
+            </button>
+
+            <button onclick="switchTab('orders')" id="tab-btn-orders" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-900 text-slate-300 hover:text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                <span>إدارة الحجوزات</span>
+            </button>
+
+            <button onclick="switchTab('services')" id="tab-btn-services" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-900 text-slate-300 hover:text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                <span>الخدمات والأسعار</span>
+            </button>
+
+            <button onclick="switchTab('regions')" id="tab-btn-regions" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-900 text-slate-300 hover:text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+                <span>مناطق التغطية والرسوم</span>
+            </button>
+
+            <button onclick="switchTab('cms')" id="tab-btn-cms" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-900 text-slate-300 hover:text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                <span>محرر المحتوى (CMS)</span>
+            </button>
+        </nav>
+
+        <!-- User Profile & DB Indicator -->
+        <div class="p-4 border-t border-slate-800 text-xs font-bold space-y-2">
+            <div id="db-status" class="flex items-center gap-2 text-slate-400">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                <span>جاري فحص الاتصال...</span>
+            </div>
+            <a href="index.html" target="_blank" class="block w-full text-center bg-slate-900 hover:bg-slate-800 text-slate-300 py-2 rounded-lg transition-colors">عرض الموقع الرئيسي ↗</a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        
+        <!-- Top Navigation Bar -->
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm">
+            <div>
+                <h2 class="text-xl font-extrabold text-slate-900" id="page-heading">الملخص والتقارير العامة</h2>
+                <p class="text-xs font-semibold text-slate-500">نظام إدارة ومتابعة الطلبات الميدانية المباشر</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="fetchBookings()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span>تحديث البيانات</span>
+                </button>
+                <button onclick="adminLogout()" class="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5" title="تسجيل الخروج">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span>خروج</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Container Views -->
+        <div class="p-8 space-y-8">
+            
+            <!-- VIEW 1: Dashboard Overview -->
+            <div id="view-dashboard" class="space-y-6">
+                <!-- KPI Stat Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                    <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">إجمالي الحجوزات</span>
+                        <div class="text-3xl font-extrabold text-slate-900" id="stat-total">14</div>
+                        <span class="text-[11px] font-bold text-emerald-600 mt-2 block">محدثة تلقائياً من Neon</span>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">طلبات جديدة تنتظر المراجعة</span>
+                        <div class="text-3xl font-extrabold text-amber-500" id="stat-new">3</div>
+                        <span class="text-[11px] font-bold text-amber-600 mt-2 block">تحتاج قبول/تأكيد الإدارة</span>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">حجوزات مؤكدة وقيد التنفيذ</span>
+                        <div class="text-3xl font-extrabold text-primary-500" id="stat-confirmed">8</div>
+                        <span class="text-[11px] font-bold text-primary-600 mt-2 block">مجدولة للتنفيذ الميداني</span>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">إجمالي الإيراد التقديري</span>
+                        <div class="text-3xl font-extrabold text-slate-900" id="stat-revenue">3,450 ر.س</div>
+                        <span class="text-[11px] font-bold text-slate-500 mt-2 block">شامل رسوم المناطق والخدمات</span>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Orders Table -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-bold text-slate-900">أحدث الحجوزات الواردة</h3>
+                        <button onclick="switchTab('orders')" class="text-xs font-bold text-primary-500 hover:underline">عرض كافة الحجوزات ❯</button>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs">
+                            <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">رقم الحجز</th>
+                                    <th class="p-3">اسم العميل</th>
+                                    <th class="p-3">رقم الجوال</th>
+                                    <th class="p-3">الخدمة المطلوبة</th>
+                                    <th class="p-3">المنطقة</th>
+                                    <th class="p-3">الموعد المحدد</th>
+                                    <th class="p-3">السعر التقديري</th>
+                                    <th class="p-3">الحالة</th>
+                                    <th class="p-3 text-center">التحكم</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-orders-tbody" class="divide-y divide-slate-100 font-semibold">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: Orders Manager -->
+            <div id="view-orders" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-bold text-slate-900">سجل الطلبات والحجوزات الإلكترونية</h3>
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <input type="text" id="order-search-input" onkeyup="filterOrdersTable()" placeholder="بحث برقم الحجز، الاسم أو الهاتف..." class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs outline-none w-full md:w-64 font-semibold">
+                            <select id="order-status-filter" onchange="fetchBookings()" class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-bold outline-none">
+                                <option value="">كافة الحالات</option>
+                                <option value="NEW">جديد (NEW)</option>
+                                <option value="CONFIRMED">مؤكد (CONFIRMED)</option>
+                                <option value="IN_PROGRESS">قيد التنفيذ (IN_PROGRESS)</option>
+                                <option value="COMPLETED">مكتمل (COMPLETED)</option>
+                                <option value="REJECTED">مرفوض (REJECTED)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs">
+                            <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">رمز الحجز</th>
+                                    <th class="p-3">العميل</th>
+                                    <th class="p-3">الجوال</th>
+                                    <th class="p-3">الخدمة والكمية</th>
+                                    <th class="p-3">العنوان والمنطقة</th>
+                                    <th class="p-3">تاريخ وموعد الخدمة</th>
+                                    <th class="p-3">السعر الإجمالي</th>
+                                    <th class="p-3">الحالة الحالية</th>
+                                    <th class="p-3 text-center">تحديث الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-orders-tbody" class="divide-y divide-slate-100 font-semibold">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: Services & Pricing CMS -->
+            <div id="view-services" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-bold text-slate-900">إدارة دليل الخدمات والتسعير</h3>
+                        <span class="text-xs font-bold text-slate-400">تعديل فوري ينعكس على حاسبة السعر وحجز العميل</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="services-cms-grid">
+                        <!-- Dynamic Editable Cards -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 4: Regions Coverage CMS -->
+            <div id="view-regions" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-bold text-slate-900">إدارة مناطق التغطية ورسوم التوصيل</h3>
+                    </div>
+                    <div class="space-y-3" id="regions-list">
+                        <!-- Dynamic Regions List -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 5: Dynamic Page Text Editor CMS -->
+            <div id="view-cms" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+                    <div class="border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-bold text-slate-900">محرر النصوص العلوية وإحصائيات الهيدر</h3>
+                        <p class="text-xs text-slate-500">عدل نصوص الإعلانات، أرقام الهاتف ورسائل البانر مباشرة بدون كود</p>
+                    </div>
+
+                    <form onsubmit="saveCmsContent(event)" class="space-y-4 max-w-2xl">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-700">شريط الإعلان العلمي (Announcement Text)</label>
+                            <input type="text" id="cms-announcement" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:border-primary-500" value="خصم 25% على كافة باقات النظافة الشاملة وتعقيم الأثاث هذا الشهر!">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-700">رقم الهاتف الموحد للدعم (Hotline Phone)</label>
+                            <input type="text" id="cms-phone" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold font-en outline-none focus:border-primary-500" value="920004107">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-700">عنوان الهيرو الرئيسي (Hero Title)</label>
+                            <input type="text" id="cms-hero-title" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:border-primary-500" value="حلول منزلية متكاملة بمعايير احترافية عالمية">
+                        </div>
+
+                        <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-md transition-all">حفظ وتحديث المحتوى فورا</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- JavaScript Data Logic -->
+    <script>
+        const API_BASE = '/api/v1';
+        let bookingsData = [];
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            })[char]);
+        }
+
+        async function apiFetch(path, options = {}) {
+            const token = sessionStorage.getItem('admin_token');
+            const headers = { ...(options.headers || {}) };
+            if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+            if (token) headers.Authorization = `Bearer ${token}`;
+            const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+            let payload = {};
+            try { payload = await response.json(); } catch {}
+            if (response.status === 401) {
+                sessionStorage.removeItem('admin_token');
+                document.getElementById('login-overlay').classList.remove('hidden');
+                throw new Error('انتهت الجلسة. سجل الدخول مجدداً.');
+            }
+            if (!response.ok || !payload.success) throw new Error(payload.error || 'تعذر إكمال الطلب');
+            return payload.data;
+        }
+
+        function switchTab(tabId) {
+            const tabs = ['dashboard', 'orders', 'services', 'regions', 'cms'];
+            tabs.forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-btn-${t}`).classList.remove('active');
+            });
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tabId}`).classList.add('active');
+
+            const titles = {
+                dashboard: 'الملخص والتقارير العامة',
+                orders: 'إدارة الحجوزات والطلبات المباشرة',
+                services: 'دليل الخدمات والأسعار التفاعلي',
+                regions: 'مناطق التغطية والرسوم التوصيلية',
+                cms: 'محرر محتوى الواجهة الرئيسي (CMS)'
+            };
+            document.getElementById('page-heading').innerText = titles[tabId];
+            if (tabId === 'services') fetchServicesAdmin();
+            if (tabId === 'regions') fetchRegionsAdmin();
+            if (tabId === 'cms') loadCmsSettings();
+        }
+
+        async function fetchBookings() {
+            try {
+                const status = document.getElementById('order-status-filter')?.value || '';
+                bookingsData = await apiFetch(`/admin/bookings${status ? `?status=${encodeURIComponent(status)}` : ''}`);
+                renderOrders();
+                await fetchDashboardStats();
+            } catch(e) {
+                showAdminMessage(e.message, true);
+            }
+        }
+
+        function renderOrders() {
+            const dashTbody = document.getElementById('dash-orders-tbody');
+            const allTbody = document.getElementById('all-orders-tbody');
+
+            let rowsHtml = '';
+            bookingsData.forEach(b => {
+                const statusBadge = getStatusBadge(b.status);
+                const item = b.items?.[0] || {};
+                rowsHtml += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-en font-black text-primary-600">${escapeHtml(b.booking_code)}</td>
+                        <td class="p-3 font-bold">${escapeHtml(b.customer_name)}</td>
+                        <td class="p-3 font-en dir-flip">${escapeHtml(b.customer_phone)}</td>
+                        <td class="p-3">${escapeHtml(item.service_title_ar || '—')} (${Number(item.unit_quantity || 1)})</td>
+                        <td class="p-3">${escapeHtml(b.region_name || '—')}</td>
+                        <td class="p-3">${escapeHtml(b.scheduled_date || '')} <br/><span class="text-[10px] text-slate-400">${escapeHtml(b.scheduled_time_slot || '')}</span></td>
+                        <td class="p-3 font-en font-black text-slate-900">${parseFloat(b.total_amount).toFixed(2)} ر.س</td>
+                        <td class="p-3">${statusBadge}</td>
+                        <td class="p-3 text-center">
+                            <select onchange="updateOrderStatus(${b.id}, this.value)" class="bg-slate-100 border border-slate-200 rounded-lg text-[11px] font-bold p-1">
+                                <option value="NEW" ${b.status==='NEW'?'selected':''}>جديد (NEW)</option>
+                                <option value="CONFIRMED" ${b.status==='CONFIRMED'?'selected':''}>تأكيد (CONFIRMED)</option>
+                                <option value="IN_PROGRESS" ${b.status==='IN_PROGRESS'?'selected':''}>تنفيذ (IN_PROGRESS)</option>
+                                <option value="COMPLETED" ${b.status==='COMPLETED'?'selected':''}>اكتمل (COMPLETED)</option>
+                                <option value="REJECTED" ${b.status==='REJECTED'?'selected':''}>رفض (REJECTED)</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            dashTbody.innerHTML = rowsHtml;
+            allTbody.innerHTML = rowsHtml;
+        }
+
+        async function fetchDashboardStats() {
+            const stats = await apiFetch('/admin/dashboard/stats');
+            document.getElementById('stat-total').innerText = stats.totalBookings;
+            document.getElementById('stat-new').innerText = stats.newBookings;
+            document.getElementById('stat-confirmed').innerText = Number(stats.inProgress || 0);
+            document.getElementById('stat-revenue').innerText = `${Number(stats.totalRevenue || 0).toLocaleString('ar-SA')} ر.س`;
+        }
+
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'NEW': return '<span class="bg-amber-50 text-amber-600 border border-amber-200 px-2.5 py-0.5 rounded-md font-bold">جديد</span>';
+                case 'CONFIRMED': return '<span class="bg-blue-50 text-primary-600 border border-blue-200 px-2.5 py-0.5 rounded-md font-bold">مؤكد</span>';
+                case 'IN_PROGRESS': return '<span class="bg-blue-50 text-blue-600 border border-blue-200 px-2.5 py-0.5 rounded-md font-bold">قيد التنفيذ</span>';
+                case 'COMPLETED': return '<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-0.5 rounded-md font-bold">مكتمل</span>';
+                case 'REJECTED': return '<span class="bg-red-50 text-red-600 border border-red-200 px-2.5 py-0.5 rounded-md font-bold">مرفوض</span>';
+                default: return status;
+            }
+        }
+
+        async function updateOrderStatus(id, newStatus) {
+            try {
+                await apiFetch(`/admin/bookings/${id}/status`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ new_status: newStatus, reason: 'تم التحديث من لوحة الإدارة' })
+                });
+                await fetchBookings();
+                showAdminMessage('تم تحديث حالة الحجز.');
+            } catch(e) {
+                showAdminMessage(e.message, true);
+                await fetchBookings();
+            }
+        }
+
+        function filterOrdersTable() {
+            const search = document.getElementById('order-search-input').value.toLowerCase();
+            const rows = document.querySelectorAll('#all-orders-tbody tr');
+            rows.forEach(r => {
+                r.style.display = r.innerText.toLowerCase().includes(search) ? '' : 'none';
+            });
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('admin-email').value.trim();
+            const password = document.getElementById('admin-password').value;
+            const errorDiv = document.getElementById('login-error');
+            errorDiv.classList.add('hidden');
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    sessionStorage.setItem('admin_token', data.data.token);
+                    document.getElementById('login-overlay').classList.add('hidden');
+                    fetchBookings();
+                    checkHealth();
+                } else {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.innerText = data.error || 'خطأ في اسم المستخدم أو كلمة المرور';
+                }
+            } catch(err) {
+                errorDiv.classList.remove('hidden');
+                errorDiv.innerText = 'خطأ في الاتصال بالخادم Backend';
+            }
+        }
+
+        function adminLogout() {
+            sessionStorage.removeItem('admin_token');
+            document.getElementById('login-overlay').classList.remove('hidden');
+        }
+
+        async function fetchServicesAdmin() {
+            try {
+                const services = await apiFetch('/admin/services');
+                document.getElementById('services-cms-grid').innerHTML = services.map(service => `
+                    <div class="border border-slate-200 rounded-xl p-4 space-y-3">
+                        <input id="svc-ar-${service.id}" class="w-full border rounded-lg px-3 py-2 text-xs font-bold" value="${escapeHtml(service.title_ar)}">
+                        <input id="svc-en-${service.id}" dir="ltr" class="w-full border rounded-lg px-3 py-2 text-xs font-en" value="${escapeHtml(service.title_en)}">
+                        <div class="flex gap-2">
+                            <input id="svc-price-${service.id}" type="number" min="0" step="0.01" class="w-full border rounded-lg px-3 py-2 text-xs font-en" value="${Number(service.base_price)}">
+                            <button onclick="saveService(${service.id})" class="bg-primary-500 text-white rounded-lg px-4 text-xs font-bold">حفظ</button>
+                        </div>
+                    </div>`).join('');
+            } catch(e) { showAdminMessage(e.message, true); }
+        }
+
+        async function saveService(id) {
+            try {
+                await apiFetch(`/admin/services/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        title_ar: document.getElementById(`svc-ar-${id}`).value.trim(),
+                        title_en: document.getElementById(`svc-en-${id}`).value.trim(),
+                        base_price: Number(document.getElementById(`svc-price-${id}`).value)
+                    })
+                });
+                showAdminMessage('تم حفظ الخدمة.');
+            } catch(e) { showAdminMessage(e.message, true); }
+        }
+
+        async function fetchRegionsAdmin() {
+            try {
+                const regions = await apiFetch('/admin/regions');
+                document.getElementById('regions-list').innerHTML = regions.map(region => `
+                    <div class="grid grid-cols-1 md:grid-cols-[1fr_1fr_140px_auto] gap-2 border border-slate-200 rounded-xl p-3">
+                        <input id="region-ar-${region.id}" class="border rounded-lg px-3 py-2 text-xs font-bold" value="${escapeHtml(region.name_ar)}">
+                        <input id="region-en-${region.id}" dir="ltr" class="border rounded-lg px-3 py-2 text-xs font-en" value="${escapeHtml(region.name_en)}">
+                        <input id="region-fee-${region.id}" type="number" min="0" step="0.01" class="border rounded-lg px-3 py-2 text-xs font-en" value="${Number(region.base_fee)}">
+                        <button onclick="saveRegion(${region.id})" class="bg-primary-500 text-white rounded-lg px-4 py-2 text-xs font-bold">حفظ</button>
+                    </div>`).join('');
+            } catch(e) { showAdminMessage(e.message, true); }
+        }
+
+        async function saveRegion(id) {
+            try {
+                await apiFetch(`/admin/regions/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        name_ar: document.getElementById(`region-ar-${id}`).value.trim(),
+                        name_en: document.getElementById(`region-en-${id}`).value.trim(),
+                        base_fee: Number(document.getElementById(`region-fee-${id}`).value)
+                    })
+                });
+                showAdminMessage('تم حفظ المنطقة.');
+            } catch(e) { showAdminMessage(e.message, true); }
+        }
+
+        async function loadCmsSettings() {
+            try {
+                const [settings, cms] = await Promise.all([
+                    apiFetch('/admin/settings'),
+                    apiFetch('/admin/cms')
+                ]);
+                const settingsMap = Object.fromEntries(settings.map(item => [item.setting_key, item.setting_value]));
+                const cmsMap = Object.fromEntries(cms.map(item => [item.content_key, item.content_value_ar]));
+                document.getElementById('cms-phone').value = settingsMap.phone || '';
+                document.getElementById('cms-announcement').value = cmsMap.announcement || '';
+                document.getElementById('cms-hero-title').value = cmsMap.hero_title || '';
+            } catch(e) { showAdminMessage(e.message, true); }
+        }
+
+        async function saveCmsContent(e) {
+            e.preventDefault();
+            try {
+                await Promise.all([
+                    apiFetch('/admin/settings', {
+                        method: 'PUT',
+                        body: JSON.stringify({ settings: [{ key: 'phone', value: document.getElementById('cms-phone').value.trim() }] })
+                    }),
+                    apiFetch('/admin/cms', {
+                        method: 'POST',
+                        body: JSON.stringify({ key: 'announcement', value_ar: document.getElementById('cms-announcement').value.trim(), value_en: '' })
+                    }),
+                    apiFetch('/admin/cms', {
+                        method: 'POST',
+                        body: JSON.stringify({ key: 'hero_title', value_ar: document.getElementById('cms-hero-title').value.trim(), value_en: '' })
+                    })
+                ]);
+                showAdminMessage('تم حفظ إعدادات المحتوى.');
+            } catch(e) { showAdminMessage(e.message, true); }
+        }
+
+        function showAdminMessage(message, isError = false) {
+            const old = document.getElementById('admin-toast');
+            if (old) old.remove();
+            const toast = document.createElement('div');
+            toast.id = 'admin-toast';
+            toast.className = `fixed bottom-5 left-5 z-[100] px-5 py-3 rounded-xl text-white text-xs font-bold shadow-xl ${isError ? 'bg-red-600' : 'bg-emerald-600'}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+
+        async function checkHealth() {
+            const el = document.getElementById('db-status');
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const payload = await response.json();
+                const connected = payload.data?.database === 'connected';
+                el.className = `flex items-center gap-2 ${connected ? 'text-emerald-400' : 'text-amber-400'}`;
+                el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full ${connected ? 'bg-emerald-500' : 'bg-amber-500'}"></span><span>${connected ? 'متصل بقاعدة البيانات' : 'قاعدة البيانات غير متاحة'}</span>`;
+            } catch {
+                el.innerHTML = '<span class="w-2.5 h-2.5 rounded-full bg-red-500"></span><span>تعذر فحص الاتصال</span>';
+            }
+        }
+
+        window.onload = () => {
+            const token = sessionStorage.getItem('admin_token');
+            checkHealth();
+            if (token) {
+                document.getElementById('login-overlay').classList.add('hidden');
+                fetchBookings();
+            } else {
+                document.getElementById('login-overlay').classList.remove('hidden');
+            }
+        };
+    </script>
+</body>
+</html>
